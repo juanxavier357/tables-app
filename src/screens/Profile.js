@@ -37,7 +37,7 @@ const Profile = ({ navigation }) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync();
-    if (!result.cancelled && result.assets && result.assets.length > 0) {
+    if (!result.canceled && result.assets && result.assets.length > 0) {
       setProfileImage(result.assets[0].uri);
       await uploadImage(result.assets[0].uri);
     }

@@ -42,6 +42,15 @@ export default function App() {
         >
           <Drawer.Screen name="Perfil" component={Profile} />
           <Drawer.Screen name="Inicio" component={Home} />
+          <Stack.Screen name="Nivel" component={Level} />
+          <Stack.Screen name="Estudiar" component={Study} />
+          <Stack.Screen name="Aprendizaje" component={Learning} />
+          <Stack.Screen name="Entrenar" component={Train} />
+          <Stack.Screen name="Completa la tabla" component={Complete} />
+          <Stack.Screen name="Arrastra y suelta" component={DragDrop} />
+          <Stack.Screen name="Memoriza el orden" component={Memory} />
+          <Stack.Screen name="Ordena la tabla" component={Order} />
+          <Stack.Screen name="Elige una opción" component={Options} />
         </Drawer.Navigator>
       ) : (
         <Stack.Navigator initialRouteName="Login">
