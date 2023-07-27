@@ -4,7 +4,6 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 const NavBar = ({
   onHome,
   onProfile,
-  onLevel,
   onChallenge,
   onHelp,
   onLogout,

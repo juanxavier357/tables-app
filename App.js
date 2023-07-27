@@ -21,16 +21,6 @@ import Help from "./src/screens/Help";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
-const InsideStack = createNativeStackNavigator();
-
-function InsideLayout() {
-  return (
-    <InsideStack.Navigator>
-      <InsideStack.Screen name="Perfil" component={Profile} />
-      <InsideStack.Screen name="Inicio" component={Home} />
-    </InsideStack.Navigator>
-  );
-}
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -50,12 +40,8 @@ export default function App() {
         <Drawer.Navigator
           drawerContent={(props) => <DrawerContent {...props} />}
         >
-          <Drawer.Screen
-            name="Tablas de Multiplicar"
-            component={InsideLayout}
-          />
-          <Drawer.Screen name="Desafío" component={Learning} />
-          <Drawer.Screen name="Ayuda" component={Help} />
+          <Drawer.Screen name="Perfil" component={Profile} />
+          <Drawer.Screen name="Inicio" component={Home} />
         </Drawer.Navigator>
       ) : (
         <Stack.Navigator initialRouteName="Login">
@@ -74,6 +60,7 @@ export default function App() {
           <Stack.Screen name="Memoriza el orden" component={Memory} />
           <Stack.Screen name="Ordena la tabla" component={Order} />
           <Stack.Screen name="Elige una opción" component={Options} />
+          <Stack.Screen name="Ayuda" component={Help} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

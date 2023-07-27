@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Button, Avatar } from "react-native-paper";
-import { FIREBASE_AUTH } from "../../FirebaseConfig";
+import { View, Text, StyleSheet, Image } from "react-native";
+import { Button } from "react-native-paper";
+import { FIREBASE_AUTH, FIREBASE_STORAGE } from "../../FirebaseConfig";
 import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
 
 const Profile = ({ navigation }) => {
   const [userData, setUserData] = useState({});
@@ -18,6 +17,16 @@ const Profile = ({ navigation }) => {
     }
   }, []);
 
+  useEffect(() => {
+    // Si el usuario sube una nueva imagen, actualizamos la fotoURL en los datos del usuario
+    if (profileImage) {
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        photoURL: profileImage,
+      }));
+    }
+  }, [profileImage]);
+
   const { displayName, email, photoURL } = userData;
 
   const handleChoosePhoto = async () => {
@@ -28,34 +37,34 @@ const Profile = ({ navigation }) => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync();
-    if (!result.canceled) {
+    if (!result.cancelled && result.assets && result.assets.length > 0) {
       setProfileImage(result.assets[0].uri);
-      uploadImage(result.assets[0]);
+      await uploadImage(result.assets[0].uri);
     }
   };
 
-  const uploadImage = async (imageData) => {
+  const uploadImage = async (uri) => {
     try {
-      const data = new FormData();
-      data.append("file", {
-        uri: imageData.uri,
-        type: imageData.type,
-        name: "image.jpg",
-      });
+      const response = await fetch(uri);
+      if (!response.ok) {
+        throw new Error("Error al cargar la imagen");
+      }
 
-      const cloudinaryURL = "https://api.cloudinary.com/v1_1/dr4zkzpho/upload";
-      const cloudinaryParams = {
-        folder: "profile",
-        overwrite: true,
-        upload_preset: "_PerfilPhoto",
-      };
+      const blob = await response.blob();
 
-      const response = await axios.post(cloudinaryURL, data, {
-        params: cloudinaryParams,
-      });
-      console.log("Imagen subida exitosamente a Cloudinary:", response.data);
+      const currentUser = FIREBASE_AUTH.currentUser;
+      const storageRef = FIREBASE_STORAGE.storage().ref();
+      const imageRef = storageRef.child(`profile/${currentUser.uid}/image.jpg`);
+
+      await imageRef.put(blob);
+
+      const downloadURL = await imageRef.getDownloadURL();
+      console.log("Imagen subida exitosamente a Firebase:", downloadURL);
+
+      return downloadURL;
     } catch (error) {
-      console.log("Error al subir la imagen a Cloudinary:", error);
+      console.log("Error al subir la imagen a Firebase:", error);
+      throw error;
     }
   };
 
@@ -63,16 +72,18 @@ const Profile = ({ navigation }) => {
     <View style={styles.container}>
       {userData && (
         <View style={styles.userInfo}>
-          <Avatar.Image
-            source={
-              profileImage
-                ? { uri: profileImage }
-                : photoURL
-                ? { uri: photoURL }
-                : require("../../assets/images/user1.jpg")
-            }
-            style={styles.avatar}
-          />
+          <View style={styles.avatarContainer}>
+            <Image
+              source={
+                profileImage
+                  ? { uri: profileImage }
+                  : photoURL
+                  ? { uri: photoURL }
+                  : require("../../assets/images/user1.jpg")
+              }
+              style={styles.avatar}
+            />
+          </View>
           <Text style={styles.displayName}>Usuario: {displayName}</Text>
           <Text style={styles.email}>Correo: {email}</Text>
           <Button
@@ -115,11 +126,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  avatar: {
+  avatarContainer: {
     width: 150,
     height: 150,
     borderRadius: 75,
+    overflow: "hidden",
     marginBottom: 10,
+  },
+  avatar: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
   },
   displayName: {
     fontSize: 24,

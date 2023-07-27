@@ -3,7 +3,7 @@ import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Home({ navigation }) {
   const handleSelectLevel = (level, color) => {
-    navigation.navigate("Selecciona el nivel", { level, color });
+    navigation.navigate("Nivel", { level, color });
   };
 
   return (
