@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, FlatList} from "react-native";
 import { Button } from "react-native-paper";
-import { FIREBASE_AUTH, FIREBASE_STORAGE } from "../../FirebaseConfig";
+import {
+  FIREBASE_AUTH,
+  FIREBASE_STORAGE,
+  FIREBASE_DB,
+} from "../../FirebaseConfig";
 import * as ImagePicker from "expo-image-picker";
 
 const Profile = ({ navigation }) => {
   const [userData, setUserData] = useState({});
-  const [profileImage, setProfileImage] = useState(null);
-
+  const [profileImage, setProfileImage] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [files, setFiles] = useState([]);
+  
   useEffect(() => {
     // Obtenemos los datos del usuario actual desde Firebase Authentication
     const currentUser = FIREBASE_AUTH.currentUser;
@@ -15,6 +21,18 @@ const Profile = ({ navigation }) => {
       const { displayName, email, photoURL } = currentUser;
       setUserData({ displayName, email, photoURL });
     }
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(FIREBASE_DB, "files"), (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          console.log("Nueva imagen ", change.doc.data());
+          setFiles((prevFiles) => [...prevFiles, change.doc.data()]);
+        }
+      });
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -36,37 +54,67 @@ const Profile = ({ navigation }) => {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync();
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 1,
+    });
+
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setProfileImage(result.assets[0].uri);
-      await uploadImage(result.assets[0].uri);
+      //Subir la imagen
+      await uploadImage(result.assets[0].uri, "image");
     }
   };
 
-  const uploadImage = async (uri) => {
+  const uploadImage = async (uri, fileType) => {
     try {
       const response = await fetch(uri);
       if (!response.ok) {
         throw new Error("Error al cargar la imagen");
       }
-
       const blob = await response.blob();
 
-      const currentUser = FIREBASE_AUTH.currentUser;
-      const storageRef = FIREBASE_STORAGE.storage().ref();
-      const imageRef = storageRef.child(`profile/${currentUser.uid}/image.jpg`);
+      const storageRef = ref(
+        FIREBASE_STORAGE,
+        "profile/" + new Date().getTime()
+      );
+      const uploadTask = uploadBytesResumable(storageRef, blob);
 
-      await imageRef.put(blob);
+      // Escuchando los eventos
+      uploadTask.on("state_changed", (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log("La carga está en un " + progress + "% completado");
+        setProgress(progress.toFixed());
+      });
 
-      const downloadURL = await imageRef.getDownloadURL();
-      console.log("Imagen subida exitosamente a Firebase:", downloadURL);
-
-      return downloadURL;
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref)
+          .then(async (downloadURL) => {
+            console.log("Archivo disponible en ", downloadURL)
+            // Guardar registro
+            await saveRecord(fileType, downloadURL, new Date().toISOString())
+            setProfileImage("")
+        })
+      }
     } catch (error) {
       console.log("Error al subir la imagen a Firebase:", error);
-      throw error;
-    }
   };
+
+  const saveRecord = async (fileType, url, createdAt) => {
+    try {
+      const docRef = await addDoc(collection(FIREBASE_DB, "files"), {
+        fileType,
+        utl,
+        createdAt,
+      })
+      console.log("Imagen guardada correctamente ", docRef.id)
+    } catch (error) {
+      console.error(error)
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -84,7 +132,7 @@ const Profile = ({ navigation }) => {
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.displayName}>Usuario{displayName}</Text>
+          <Text style={styles.displayName}>Usuario: {displayName}</Text>
           <Text style={styles.email}>{email}</Text>
           <Button
             mode="contained"
