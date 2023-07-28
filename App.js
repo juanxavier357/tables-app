@@ -35,7 +35,7 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer androidEnabled={true}>
       {user ? (
         <Drawer.Navigator
           drawerContent={(props) => <DrawerContent {...props} />}
@@ -44,13 +44,15 @@ export default function App() {
           <Drawer.Screen name="Inicio" component={Home} />
           <Stack.Screen name="Nivel" component={Level} />
           <Stack.Screen name="Estudiar" component={Study} />
-          <Stack.Screen name="Aprendizaje" component={Learning} />
+          <Stack.Screen name="Desafío" component={Learning} />
           <Stack.Screen name="Entrenar" component={Train} />
           <Stack.Screen name="Completa la tabla" component={Complete} />
           <Stack.Screen name="Arrastra y suelta" component={DragDrop} />
           <Stack.Screen name="Memoriza el orden" component={Memory} />
           <Stack.Screen name="Ordena la tabla" component={Order} />
           <Stack.Screen name="Elige una opción" component={Options} />
+          <Stack.Screen name="Ayuda" component={Help} />
+          <Stack.Screen name="Iniciar sesión" component={Login} />
         </Drawer.Navigator>
       ) : (
         <Stack.Navigator initialRouteName="Login">
@@ -62,7 +64,7 @@ export default function App() {
           <Stack.Screen name="Inicio" component={Home} />
           <Stack.Screen name="Nivel" component={Level} />
           <Stack.Screen name="Estudiar" component={Study} />
-          <Stack.Screen name="Aprendizaje" component={Learning} />
+          <Stack.Screen name="Desafío" component={Learning} />
           <Stack.Screen name="Entrenar" component={Train} />
           <Stack.Screen name="Completa la tabla" component={Complete} />
           <Stack.Screen name="Arrastra y suelta" component={DragDrop} />

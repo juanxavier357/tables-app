@@ -2,11 +2,11 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
-import firebase from "firebase/app";
+import { FIREBASE_AUTH } from "../../FirebaseConfig";
 
 const DrawerContent = ({ navigation }) => {
   const handleLogout = () => {
-    firebase.auth().signOut();
+    FIREBASE_AUTH.signOut();
     navigation.closeDrawer();
     navigation.navigate("Iniciar sesión");
   };

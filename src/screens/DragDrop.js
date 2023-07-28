@@ -151,6 +151,7 @@ const DragDrop = ({ route }) => {
           numColumns={3}
           contentContainerStyle={styles.column}
         />
+        <Text style={styles.title}>Completa las multiplicaciones</Text>
         <SafeAreaView style={styles.column}>
           <FlatList
             data={operaciones}
@@ -172,7 +173,9 @@ const DragDrop = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexWrap: "wrap",
     flexDirection: "column",
+    justifyContent: "center",
   },
   column: {
     flexGrow: 1,
@@ -183,6 +186,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: 60,
+    borderRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   receiver: {
     margin: 5,
@@ -190,6 +201,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: 60,
+    borderWidth: 2,
+    borderColor: "lightgreen",
   },
   receiving: {
     opacity: 0.5,
@@ -213,6 +226,13 @@ const styles = StyleSheet.create({
   restartButtonText: {
     fontSize: 20,
     fontWeight: "bold",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    margin: 20,
+    textAlign: "center",
+    color: "#2196F3",
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Image, StyleSheet, Text, View } from "react-native";
 import { Audio } from "expo-av";
 
 export default function Options({ route }) {
@@ -47,7 +47,7 @@ export default function Options({ route }) {
     if (answer === questions[currentQuestion].answer) {
       // Respuesta correcta
       setScore((prevScore) => prevScore + 1);
-      
+
       const { sound } = await Audio.Sound.createAsync(
         require("../../assets/sounds/correct.mp3")
       );
@@ -94,15 +94,17 @@ export default function Options({ route }) {
     <View style={styles.container}>
       {!gameOver ? (
         <View>
+          <Text style={styles.title}>¡Recuerda la tabla del {table}!</Text>
           <Text style={styles.title}>
-            ¡Aprende la tabla de multiplicar del {table}!
-          </Text>
-          <Text style={styles.question}>
             Pregunta {currentQuestion + 1} de {totalQuestions}
           </Text>
+          <Image
+            source={require("../../assets/images/despegue.jpg")}
+            style={[styles.image, { alignSelf: "center" }]}
+          />
           <Text style={styles.question}>
             {questions[currentQuestion].operand1} x{" "}
-            {questions[currentQuestion].operand2} =
+            {questions[currentQuestion].operand2}
           </Text>
           <View style={styles.answersContainer}>
             {questions[currentQuestion].options.map((option, index) => (
@@ -144,6 +146,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
   },
+  image: {
+    width: 200,
+    height: 200,
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -152,7 +158,7 @@ const styles = StyleSheet.create({
     color: "#E91E63",
   },
   question: {
-    fontSize: 24,
+    fontSize: 40,
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",

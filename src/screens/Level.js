@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Image, StyleSheet, Text, View } from "react-native";
 
 export default function Level({ route, navigation }) {
   const { level, color } = route.params;
@@ -15,6 +15,11 @@ export default function Level({ route, navigation }) {
       <Text style={[styles.title, { color }]}>
         Tablas de multiplicar del {tablesStart} al {tablesEnd}
       </Text>
+      <Image
+        source={require("../../assets/images/despegue.jpg")}
+        style={styles.image}
+      />
+      <Text style={styles.subTitle}>Elige la tabla que quieres aprender</Text>
       <View style={styles.buttonsContainer}>
         {[...Array(4)].map((_, index) => (
           <View key={index} style={styles.buttonContainer}>
@@ -37,11 +42,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+  },
+  subTitle: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#E91E63",
   },
   buttonsContainer: {
     alignItems: "center",

@@ -1,13 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, BackHandler } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { shuffle } from "lodash";
 import * as Speech from "expo-speech";
 
-const TablaMultiplicarScreen = ({ route }) => {
+const Study = ({ route }) => {
   const { table } = route.params;
   const [tablaMultiplicaciones, setTablaMultiplicaciones] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const speechRef = useRef();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+      const handleBackPress = () => {
+        navigation.goBack();
+        return true; // Para evitar que el botón de retroceso propague el evento.
+      };
+      // Este listener se activará cuando el usuario presione el botón de retroceso del dispositivo.
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        handleBackPress
+      );
+
+      // Limpia el listener cuando el componente se desmonta.
+      return () => backHandler.remove();
+    }, [navigation]);
 
   useEffect(() => {
     generarTablaMultiplicaciones();
@@ -120,7 +137,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f9e3cd",
   },
   buttonsContainer: {
     flexDirection: "row",
@@ -128,14 +144,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#ff6f69",
+    backgroundColor: "#FF5722", // Naranja vibrante
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
     marginHorizontal: 10,
   },
   buttonText: {
-    color: "#fff",
+    color: "#FFF", // Texto blanco para mayor contraste
     fontSize: 16,
     fontWeight: "bold",
   },
@@ -150,18 +166,18 @@ const styles = StyleSheet.create({
     height: 60,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#ffa07a",
+    backgroundColor: "#2196F3", // Azul vibrante
     margin: 5,
     borderRadius: 10,
   },
   highlightedItem: {
-    backgroundColor: "#ffcc5c",
+    backgroundColor: "#4CAF50", // Verde vibrante
   },
   tablaItemText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#FFF", // Texto blanco para mayor contraste
   },
 });
 
-export default TablaMultiplicarScreen;
+export default Study;

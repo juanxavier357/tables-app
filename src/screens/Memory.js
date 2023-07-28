@@ -90,7 +90,7 @@ export default function Memory({ route }) {
     <View style={styles.container}>
       {!matchedPairs ? (
         <View>
-          <Text style={styles.title}>Memory Matemática</Text>
+          <Text style={styles.title}>Recuerda las cartas</Text>
           <View style={styles.cardContainer}>
             {cards.map((card) => (
               <View key={card.id} style={styles.card}>
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",

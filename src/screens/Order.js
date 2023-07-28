@@ -66,7 +66,7 @@ export default function Order({ route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Elegir Respuesta</Text>
+      <Text style={styles.title}>Elige la forma</Text>
       <View style={styles.orderButtonContainer}>
         <TouchableOpacity
           style={[
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     color: "#D32F2F",

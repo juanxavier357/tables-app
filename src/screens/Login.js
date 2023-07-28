@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   StyleSheet,
+  Image,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
 import { FIREBASE_AUTH } from "../../FirebaseConfig";
@@ -18,6 +20,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSignInMode, setIsSignInMode] = useState(true); // State to determine the mode: sign in or sign up
 
   const auth = FIREBASE_AUTH;
 
@@ -57,19 +60,30 @@ const Login = () => {
     }
   };
 
+  const toggleMode = () => {
+    setIsSignInMode((prevMode) => !prevMode);
+  };
+
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView behavior="padding">
-        <Text>Login</Text>
-        <Text style={styles.label}>Correo Electrónico:</Text>
+      <KeyboardAvoidingView behavior="padding" style={styles.content}>
+        <Text style={styles.title}>
+          Tablas de Multiplicar
+        </Text>
+        <Image
+          source={require("../../assets/images/despegue.jpg")}
+          style={styles.image}
+        />
+        <Text style={styles.title}>
+          {isSignInMode ? "Iniciar Sesión" : "Crear una cuenta"}
+        </Text>
         <TextInput
           style={styles.input}
-          placeholder="Correo"
+          placeholder="Correo Electrónico"
           autoCapitalize="none"
           value={email}
           onChangeText={(text) => setEmail(text)}
         />
-        <Text style={styles.label}>Contraseña:</Text>
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
@@ -82,8 +96,21 @@ const Login = () => {
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
           <>
-            <Button title="Iniciar sesión" onPress={signIn} />
-            <Button title="Crear una cuenta" onPress={signUp} />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={isSignInMode ? signIn : signUp}
+            >
+              <Text style={styles.buttonText}>
+                {isSignInMode ? "Iniciar sesión" : "Crear una cuenta"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.toggleButton} onPress={toggleMode}>
+              <Text style={styles.toggleButtonText}>
+                {isSignInMode
+                  ? "¿No tienes una cuenta? Crea una cuenta"
+                  : "¿Ya tienes una cuenta? Inicia Sesión"}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
       </KeyboardAvoidingView>
@@ -96,17 +123,51 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: "center",
+    backgroundColor: "#f2f2f2",
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
+  content: {
+    alignItems: "center",
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#2196F3",
   },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 5,
-    padding: 10,
+    padding: 15,
     marginBottom: 15,
+    width: "100%",
+    backgroundColor: "#fff",
+  },
+  button: {
+    backgroundColor: "#2196F3",
+    borderRadius: 10,
+    padding: 15,
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  toggleButton: {
+    padding: 10,
+    marginBottom: 10,
+  },
+  toggleButtonText: {
+    color: "#2196F3",
+    fontSize: 14,
   },
 });
 

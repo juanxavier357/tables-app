@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Image, StyleSheet, Text, View } from "react-native";
 
 export default function Home({ navigation }) {
   const handleSelectLevel = (level, color) => {
@@ -9,9 +9,12 @@ export default function Home({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          Bienvenid@s a las tablas de multiplicar
-        </Text>
+        <Text style={styles.title}>Tablas de Multiplicar</Text>
+        <Text style={styles.title}>Bienvenid@s</Text>
+        <Image
+          source={require("../../assets/images/despegue.jpg")}
+          style={styles.image}
+        />
         <Text style={styles.subTitle}>Elige el nivel que quieres aprender</Text>
       </View>
       <View style={styles.buttonsContainer}>
@@ -51,6 +54,11 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     marginBottom: 30,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,

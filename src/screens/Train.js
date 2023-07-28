@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Button, Image, StyleSheet, Text, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 export default function Train({ route }) {
@@ -35,9 +35,9 @@ export default function Train({ route }) {
     navigation.navigate("Arrastra y suelta", { table: table });
   };
 
-   const handleStudy = () => {
-     navigation.navigate("Estudiar", { table: table });
-   };
+  const handleStudy = () => {
+    navigation.navigate("Estudiar", { table: table });
+  };
 
   const handleNextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
@@ -67,32 +67,55 @@ export default function Train({ route }) {
       ) : (
         <>
           <Text style={styles.title}>Tabla de multiplicar del {table}</Text>
+          <Image
+            source={require("../../assets/images/despegue.jpg")}
+            style={styles.image}
+          />
+          <Text style={styles.subTitle}>
+            Elige la forma que quieres aprender
+          </Text>
           <View style={styles.buttonsContainer}>
-            <View style={styles.playButtonContainer}>
-              <Button title="Estudiar" onPress={handleStudy} color="#009688" />
-            </View>
-            <View style={styles.playButtonContainer}>
-              <Button title="Arrastrar" onPress={handleDrag} color="#009688" />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Arrastrar"
+                onPress={handleDrag}
+                color="#2196F3" // Azul
+              />
             </View>
             <View style={styles.buttonContainer}>
               <Button
                 title="Completar"
                 onPress={handleComplete}
-                color="#4CAF50"
+                color="#4CAF50" // Verde
               />
             </View>
-            <View style={styles.playButtonContainer}>
-              <Button title="Elegir" onPress={handleChoose} color="#9C27B0" />
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Estudiar"
+                onPress={handleStudy}
+                color="#00BCD4" // Verde Azulado
+              />
+            </View>
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Elegir"
+                onPress={handleChoose}
+                color="#9C27B0" // Morado
+              />
             </View>
             <View style={styles.buttonContainer}>
               <Button
                 title="Memorizar"
                 onPress={handleMemory}
-                color="#FF5722"
+                color="#FF5722" // Naranja
               />
             </View>
             <View style={styles.buttonContainer}>
-              <Button title="Ordenar" onPress={handleOrder} color="#3F51B5" />
+              <Button
+                title="Ordenar"
+                onPress={handleOrder}
+                color="#3F51B5" // Azul oscuro
+              />
             </View>
           </View>
         </>
@@ -107,6 +130,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -135,6 +163,11 @@ const styles = StyleSheet.create({
     elevation: 3,
     minWidth: 200,
     width: "80%",
+  },
+  subTitle: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#E91E63",
   },
   studyContainer: {
     alignItems: "center",

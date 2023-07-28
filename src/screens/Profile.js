@@ -84,8 +84,8 @@ const Profile = ({ navigation }) => {
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.displayName}>Usuario: {displayName}</Text>
-          <Text style={styles.email}>Correo: {email}</Text>
+          <Text style={styles.displayName}>Usuario{displayName}</Text>
+          <Text style={styles.email}>{email}</Text>
           <Button
             mode="contained"
             onPress={handleChoosePhoto}
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+    padding: 20,
   },
   userInfo: {
     alignItems: "center",
@@ -132,6 +133,16 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     overflow: "hidden",
     marginBottom: 10,
+    borderWidth: 3,
+    borderColor: "#2196F3", // Borde azul alrededor del avatar
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   avatar: {
     flex: 1,
@@ -142,10 +153,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 5,
+    color: "#2196F3", // Texto en color azul
   },
   email: {
     fontSize: 16,
     color: "gray",
+    marginBottom: 20,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -155,6 +168,16 @@ const styles = StyleSheet.create({
   button: {
     marginVertical: 10,
     width: "45%",
+    backgroundColor: "#2196F3",
+    borderRadius: 8, // Bordes redondeados del botón
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
 
