@@ -1,38 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Image, FlatList} from "react-native";
+import { View, Text, StyleSheet, Image } from "react-native";
 import { Button } from "react-native-paper";
-import {
-  FIREBASE_AUTH,
-  FIREBASE_STORAGE,
-  FIREBASE_DB,
-} from "../../FirebaseConfig";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
+import { FIREBASE_AUTH, FIREBASE_STORAGE } from "../../FirebaseConfig";
+import { updateProfile } from "firebase/auth";
 
 const Profile = ({ navigation }) => {
   const [userData, setUserData] = useState({});
-  const [profileImage, setProfileImage] = useState("");
-  const [progress, setProgress] = useState(0);
-  const [files, setFiles] = useState([]);
-  
-  useEffect(() => {
-    // Obtenemos los datos del usuario actual desde Firebase Authentication
-    const currentUser = FIREBASE_AUTH.currentUser;
-    if (currentUser) {
-      const { displayName, email, photoURL } = currentUser;
-      setUserData({ displayName, email, photoURL });
-    }
-  }, []);
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(FIREBASE_DB, "files"), (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          console.log("Nueva imagen ", change.doc.data());
-          setFiles((prevFiles) => [...prevFiles, change.doc.data()]);
-        }
-      });
-    });
-    return () => unsubscribe();
+    const currentUser = FIREBASE_AUTH.currentUser;
+    const { displayName, email, photoURL, uid } = currentUser;
+    if (currentUser) {
+      setUserData({ displayName, email, photoURL, uid });
+    }
   }, []);
 
   useEffect(() => {
@@ -45,76 +28,89 @@ const Profile = ({ navigation }) => {
     }
   }, [profileImage]);
 
-  const { displayName, email, photoURL } = userData;
-
-  const handleChoosePhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Permiso denegado para acceder a la galería de imágenes");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [3, 4],
-      quality: 1,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setProfileImage(result.assets[0].uri);
-      //Subir la imagen
-      await uploadImage(result.assets[0].uri, "image");
-    }
-  };
-
-  const uploadImage = async (uri, fileType) => {
+  const choosePhoto = async () => {
     try {
-      const response = await fetch(uri);
-      if (!response.ok) {
-        throw new Error("Error al cargar la imagen");
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Permiso denegado para acceder a la galería de imágenes");
+        return;
       }
-      const blob = await response.blob();
 
-      const storageRef = ref(
-        FIREBASE_STORAGE,
-        "profile/" + new Date().getTime()
-      );
-      const uploadTask = uploadBytesResumable(storageRef, blob);
-
-      // Escuchando los eventos
-      uploadTask.on("state_changed", (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log("La carga está en un " + progress + "% completado");
-        setProgress(progress.toFixed());
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
       });
 
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref)
-          .then(async (downloadURL) => {
-            console.log("Archivo disponible en ", downloadURL)
-            // Guardar registro
-            await saveRecord(fileType, downloadURL, new Date().toISOString())
-            setProfileImage("")
-        })
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        // Establecer la nueva imagen local
+        setProfileImage(result.assets[0].uri);
+
+        // Subir la imagen a Firebase Storage
+        const storageRef = ref(FIREBASE_STORAGE, `profile/${userData.uid}`);
+        const metadata = {
+          contentType: "image/jpeg",
+        };
+        const uploadTask = uploadBytesResumable(
+          storageRef,
+          result.assets[0].uri,
+          metadata
+        );
+
+        // Listen for state changes, errors, and completion of the upload.
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            // A full list of error codes is available at
+            // https://firebase.google.com/docs/storage/web/handle-errors
+            switch (error.code) {
+              case "storage/unauthorized":
+                // User doesn't have permission to access the object
+                break;
+              case "storage/canceled":
+                // User canceled the upload
+                break;
+
+              // ...
+
+              case "storage/unknown":
+                // Unknown error occurred, inspect error.serverResponse
+                break;
+            }
+          },
+          () => {
+            // Upload completed successfully, now we can get the download URL
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              // Actualizar la foto de perfil del usuario en Firebase Authentication
+              const currentUser = FIREBASE_AUTH.currentUser;
+              updateProfile(currentUser, { photoURL: downloadURL });
+              console.log("File available at", downloadURL);
+            });
+          }
+        );
+
+        console.log("Foto de perfil actualizada correctamente");
       }
     } catch (error) {
       console.log("Error al subir la imagen a Firebase:", error);
-  };
-
-  const saveRecord = async (fileType, url, createdAt) => {
-    try {
-      const docRef = await addDoc(collection(FIREBASE_DB, "files"), {
-        fileType,
-        utl,
-        createdAt,
-      })
-      console.log("Imagen guardada correctamente ", docRef.id)
-    } catch (error) {
-      console.error(error)
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -123,22 +119,18 @@ const Profile = ({ navigation }) => {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                profileImage
-                  ? { uri: profileImage }
-                  : photoURL
-                  ? { uri: photoURL }
+                userData.photoURL
+                  ? { uri: userData.photoURL }
                   : require("../../assets/images/user1.jpg")
               }
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.displayName}>Usuario: {displayName}</Text>
-          <Text style={styles.email}>{email}</Text>
-          <Button
-            mode="contained"
-            onPress={handleChoosePhoto}
-            style={styles.button}
-          >
+          <Text style={styles.displayName}>
+            Usuario: {userData.displayName}
+          </Text>
+          <Text style={styles.email}>{userData.email}</Text>
+          <Button mode="contained" onPress={choosePhoto} style={styles.button}>
             Cambiar foto
           </Button>
         </View>
@@ -183,14 +175,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 3,
     borderColor: "#2196F3", // Borde azul alrededor del avatar
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
   },
   avatar: {
     flex: 1,
