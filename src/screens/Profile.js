@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { Button } from "react-native-paper";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
-import { FIREBASE_AUTH, FIREBASE_STORE } from "../../FirebaseConfig";
+import { FIREBASE_AUTH, FIREBASE_STORAGE } from "../../FirebaseConfig";
+import { updateProfile } from "firebase/auth";
 
 const Profile = ({ navigation }) => {
   const [userData, setUserData] = useState({});
@@ -26,7 +28,7 @@ const Profile = ({ navigation }) => {
     }
   }, [profileImage]);
 
-  const selectPhoto = async () => {
+  const choosePhoto = async () => {
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -45,36 +47,70 @@ const Profile = ({ navigation }) => {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         // Establecer la nueva imagen local
         setProfileImage(result.assets[0].uri);
+
+        // Subir la imagen a Firebase Storage
+        const storageRef = ref(FIREBASE_STORAGE, `profile/${userData.uid}`);
+        const metadata = {
+          contentType: "image/jpeg",
+        };
+        const uploadTask = uploadBytesResumable(
+          storageRef,
+          result.assets[0].uri,
+          metadata
+        );
+
+        // Listen for state changes, errors, and completion of the upload.
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            // A full list of error codes is available at
+            // https://firebase.google.com/docs/storage/web/handle-errors
+            switch (error.code) {
+              case "storage/unauthorized":
+                // User doesn't have permission to access the object
+                break;
+              case "storage/canceled":
+                // User canceled the upload
+                break;
+
+              // ...
+
+              case "storage/unknown":
+                // Unknown error occurred, inspect error.serverResponse
+                break;
+            }
+          },
+          () => {
+            // Upload completed successfully, now we can get the download URL
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              // Actualizar la foto de perfil del usuario en Firebase Authentication
+              const currentUser = FIREBASE_AUTH.currentUser;
+              updateProfile(currentUser, { photoURL: downloadURL });
+              console.log("File available at", downloadURL);
+            });
+          }
+        );
+
+        console.log("Foto de perfil actualizada correctamente");
       }
     } catch (error) {
       console.log("Error al subir la imagen a Firebase:", error);
     }
   };
-
-  async function savePhoto() {
-    try {
-      const userCredential = await FIREBASE_AUTH.createUserWithEmailAndPassword(
-        email,
-        password
-      );
-
-      const user = userCredential.user;
-      // Guardar el nombre de usuario en la base de datos
-      await FIREBASE_STORE.collection("users").doc(user.uid).set({
-        username: userName,
-      });
-
-      console.log(userCredential);
-      alert("¡Revisa tu correo!");
-    } catch (error) {
-      console.log(error);
-      alert("Falló al crear una cuenta: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-
-    console.log("Foto de perfil actualizada correctamente");
-  }
 
   return (
     <View style={styles.container}>
@@ -94,16 +130,9 @@ const Profile = ({ navigation }) => {
             Usuario: {userData.displayName}
           </Text>
           <Text style={styles.email}>{userData.email}</Text>
-          <Button
-            title="Seleccionar imagen"
-            onPress={selectPhoto}
-            style={styles.button}
-          />
-          <Button
-            title="Guardar cambios"
-            onPress={savePhoto}
-            style={styles.button}
-          />
+          <Button mode="contained" onPress={choosePhoto} style={styles.button}>
+            Cambiar foto
+          </Button>
         </View>
       )}
 
